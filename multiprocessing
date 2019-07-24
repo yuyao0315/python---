@@ -1,0 +1,52 @@
+#Pool（进程池）
+#如果我们要启动大量的子进程，可以用进程池的方式批量创建子进程
+
+
+from multiprocessing import Pool
+import os,time,random
+
+
+'''
+这是多进程的代码演示
+ps:本人的演示代码环境为python2.7(此版本下可加可不加，python很强的可以前后兼容)
+'''
+
+#子进程要执行的代码
+def proc_task(name):
+    print ('运行子进程 {}号,（{}）').format(name,os.getpid())
+    start_time = time.time()
+    time.sleep(random.random()*3)#随机延时一波
+    end_time = time.time()
+    print ('子进程 %s 号 运行了 %0.2f 秒.' % (name, (end_time - start_time)))#此处为百分号占位符，和format作用一样
+
+if __name__ == '__main__':
+    print ("父进程是{}").format(os.getpid())
+    p = Pool(4)
+    for i in range(5):
+        p.apply_async(proc_task,args=(i,))
+    print ("等待所有子进程执行完毕...")
+    p.close()
+    p.join()
+    print ("所有子进程执行完成")
+    
+    
+'''
+运行结果为：
+父进程是8796
+等待所有子进程执行完毕...
+运行子进程 0号,（8052）
+运行子进程 1号,（12648）
+运行子进程 2号,（14200）
+运行子进程 3号,（8016）
+子进程 2 号 运行了 0.40 秒.
+运行子进程 4号,（14200）
+子进程 3 号 运行了 1.57 秒.
+子进程 1 号 运行了 2.08 秒.
+子进程 0 号 运行了 2.90 秒.
+子进程 4 号 运行了 2.52 秒.
+所有子进程执行完成
+
+对Pool对象调用join()方法会等待所有子进程执行完毕，调用join之前呢必须先调用close()，
+调用close()之后就不能继续添加新的Process了。(ps:什么？你问我为什么？门都关上（close）了,
+还进人（添加新的process），那不得撞得流鼻血（报错）？)
+'''
